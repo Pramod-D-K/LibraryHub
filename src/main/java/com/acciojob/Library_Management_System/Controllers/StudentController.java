@@ -16,6 +16,5 @@ public class StudentController {
     @PostMapping("/add")
     public String addStudent(@RequestBody Student student){
         return studentService.addStudent(student);
-
     }
 }

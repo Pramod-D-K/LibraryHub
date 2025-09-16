@@ -13,6 +13,6 @@ public class StudentService {
 
     public String addStudent(Student student){
         studentRepository.save(student);
-        return "Student "+ student.getStudentName() +" has been Saves to Db ";
+        return "Student  has been Saves to Db ";
     }
 }
