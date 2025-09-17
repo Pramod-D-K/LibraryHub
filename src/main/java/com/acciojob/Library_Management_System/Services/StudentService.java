@@ -7,12 +7,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class StudentService {
-
     @Autowired
     private StudentRepository studentRepository;
-
     public String addStudent(Student student){
         studentRepository.save(student);
-        return "Student  has been Saves to Db ";
+        return "Student "+student.getName()+" has been Saves to Db ";
     }
 }

@@ -2,15 +2,13 @@ package com.acciojob.Library_Management_System.Entities;
 
 import com.acciojob.Library_Management_System.BookStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
-@Table(name = "librarycard")
+@Table(name = "card")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -20,11 +18,16 @@ public class LibraryCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int cardNo;
 
+    @Enumerated(value = EnumType.STRING)
     private BookStatus bookStatus;
 
     private int noOfBooksIssued;
 
-    private Date lastDate;
+    private LocalDate lastDate;
+
+    @JoinColumn //  it tells that new column is added to the card table;
+    @OneToOne // one to one connection
+    private Student student;// which table should join
 
 
 

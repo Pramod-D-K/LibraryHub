@@ -1,10 +1,9 @@
 package com.acciojob.Library_Management_System.Entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "Student")
@@ -17,9 +16,16 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int rollNo;
+
+    @Column(name = "name", nullable = false,length = 300)
     private String name;
+
     private String branch;
-    private double cgpa;
+
+    @Column(unique = false,insertable = true,updatable = true,scale = 1, precision = 10)
+    private BigDecimal cgpa;
+
+    @Column(unique = true)
     private String emailId;
 
 
