@@ -1,6 +1,6 @@
 package com.acciojob.Library_Management_System.Services;
 
-import com.acciojob.Library_Management_System.BookStatus;
+import com.acciojob.Library_Management_System.Enums.CardStatus;
 import com.acciojob.Library_Management_System.Entities.LibraryCard;
 import com.acciojob.Library_Management_System.Entities.Student;
 import com.acciojob.Library_Management_System.Repositories.LibraryCardRepository;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Service
 public class LibraryCardService {
@@ -19,7 +18,7 @@ public class LibraryCardService {
     private StudentRepository studentRepository;
     public String add(){
         LibraryCard card=new LibraryCard();
-        card.setBookStatus(BookStatus.NEW);
+        card.setBookStatus(CardStatus.NEW);
         card.setNoOfBooksIssued(0);
        // Date experyDate= new Date(2025,1,1);
         LocalDate experyDate=LocalDate.of(2025,01,01);
@@ -31,7 +30,7 @@ public class LibraryCardService {
     public String associateStudentAndCArd(Integer rollNo,Integer cardNo){
         LibraryCard card = libraryCardRepository.findById(cardNo).get();
         Student student= studentRepository.findById(rollNo).get();
-        card.setBookStatus(BookStatus.ISSUED);
+        card.setBookStatus(CardStatus.ISSUED);
         card.setStudent(student);
         libraryCardRepository.save(card);
         return  "Student "+ card.getStudent().getName() + "And Card "+card.getCardNo()+" Associated ";

@@ -1,11 +1,10 @@
 package com.acciojob.Library_Management_System.Entities;
 
-import com.acciojob.Library_Management_System.BookStatus;
+import com.acciojob.Library_Management_System.Enums.CardStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Table(name = "card")
@@ -19,7 +18,7 @@ public class LibraryCard {
     private int cardNo;
 
     @Enumerated(value = EnumType.STRING)
-    private BookStatus bookStatus;
+    private CardStatus bookStatus;
 
     private int noOfBooksIssued;
 
