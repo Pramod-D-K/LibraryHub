@@ -25,7 +25,6 @@ public class BookController {
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
-
     }
 
     @GetMapping("getBooksOfAuthor")
