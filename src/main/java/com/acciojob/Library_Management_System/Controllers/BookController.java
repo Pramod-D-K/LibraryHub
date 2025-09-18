@@ -48,6 +48,16 @@ public class BookController {
         } catch (Exception e) {
             return  new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity deleteBookById(@RequestParam("bookId")Integer bookId){
+
+        try {
+            String ans = bookService.deleteBookById(bookId);
+            return new ResponseEntity(ans,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
     }
 }

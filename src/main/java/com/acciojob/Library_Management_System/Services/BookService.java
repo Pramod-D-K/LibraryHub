@@ -78,4 +78,11 @@ public class BookService {
         authorRepository.save(author);
         return "Book " + book.getTitle()+ " And Author " +author.getAuthorName()+ " associated  Successfully";
     }
+
+
+    public String deleteBookById(Integer bookId) throws Exception {
+        Book book =bookRepository.findById(bookId).orElseThrow(()-> new InputValueNotFoundException("Book with Id "+bookId+" not found"));
+        bookRepository.delete(book);
+        return "Book with Id "+bookId+" has been deleted";
+    }
 }
