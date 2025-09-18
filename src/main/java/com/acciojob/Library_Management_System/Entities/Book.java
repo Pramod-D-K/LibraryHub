@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table
 @Setter
@@ -24,8 +26,13 @@ public class Book {
 
     private Integer noOfPages;
 
+    private int price;
+
     @Enumerated(value = EnumType.STRING)
     private Genre genre;
+
+    @Column(scale = 1)
+    private BigDecimal rating;
 
     @JoinColumn
     @ManyToOne
