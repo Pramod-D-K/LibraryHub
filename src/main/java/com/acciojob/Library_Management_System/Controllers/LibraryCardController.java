@@ -1,6 +1,5 @@
 package com.acciojob.Library_Management_System.Controllers;
 
-import com.acciojob.Library_Management_System.Entities.LibraryCard;
 import com.acciojob.Library_Management_System.Services.LibraryCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,15 +13,22 @@ public class LibraryCardController {
     private LibraryCardService libraryCardService;
 
     @PostMapping("/generatecard")
-    public ResponseEntity add(){
-        String result= libraryCardService.add();
-        return new ResponseEntity(result, HttpStatus.OK);
+    public ResponseEntity add(@RequestParam(value = "studentId",required = false)Integer studentId){
+        try{
+            String result= libraryCardService.add(studentId);
+            return new ResponseEntity(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
     @PutMapping("/associateStudentAndCard")
     public ResponseEntity associateStudentAndCard(@RequestParam("rollNo")Integer rollNo,
                                                   @RequestParam("cardNo")Integer cardNo){
-        String res= libraryCardService.associateStudentAndCArd(rollNo,cardNo);
-        return new ResponseEntity(res,HttpStatus.OK);
+        try {
+            String res= libraryCardService.associateStudentAndCArd(rollNo,cardNo);
+            return new ResponseEntity(res,HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
     }
-
 }

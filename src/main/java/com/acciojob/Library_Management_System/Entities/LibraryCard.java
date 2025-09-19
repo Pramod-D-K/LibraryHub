@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "card")
+@Table(name = "Card")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class LibraryCard {
     private int cardNo;
 
     @Enumerated(value = EnumType.STRING)
-    private CardStatus bookStatus;
+    private CardStatus cardStatus;
 
     private int noOfBooksIssued;
 

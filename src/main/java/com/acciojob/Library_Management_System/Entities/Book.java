@@ -10,7 +10,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table
+@Table(name = "Book")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -30,6 +30,11 @@ public class Book {
 
     @Enumerated(value = EnumType.STRING)
     private Genre genre;
+
+    @Column(nullable = false)
+    private Integer booksQuantity;
+
+    private  int noOfBooksLeft;
 
     @Column(scale = 1)
     private BigDecimal rating;

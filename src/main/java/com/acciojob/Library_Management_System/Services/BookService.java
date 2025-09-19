@@ -21,34 +21,91 @@ public class BookService {
     @Autowired
     private AuthorRepository authorRepository;
 
-    //add book and also associate book with author
-    public String addBook(Book book, Integer authorId, String authorName) {
-        if (authorId != null) {
-            Optional<Author>optionalAuthor=authorRepository.findById(authorId);
-            Author author = optionalAuthor
-                    .orElseThrow(() -> new RuntimeException("Invalid authorId: " + authorId));
+
+    public boolean updateNoOfBooks(Book addingBook){
+        List<Book> allBooks= bookRepository.findAll();
+        boolean found=false;
+        for (Book book: allBooks){
+            if(book.getTitle().equals(addingBook.getTitle())){
+                book.setBooksQuantity(addingBook.getBooksQuantity()+ book.getBooksQuantity());
+                book.setNoOfBooksLeft(addingBook.getBooksQuantity()+ book.getNoOfBooksLeft());
+
+                if(!book.getAuthor().equals(null)){
+                    Optional<Author>optionalAuthor=authorRepository.findById(book.getAuthor().getAuthorId());
+                    Author author=optionalAuthor.get();
+                    author.setNoOfBooks(author.getNoOfBooks()+addingBook.getBooksQuantity());
+                    authorRepository.save(author);
+                }
+                found= true;
+                break;
+            }
+            bookRepository.save(book);
+        }
+        return found;
+    }
+
+    public String addBookByAuthorID(Book book, Integer authorId, String authorName)throws Exception{
+        Optional<Author>optionalAuthor=authorRepository.findById(authorId);
+        if(optionalAuthor.isPresent()){
+            Author author= optionalAuthor.get();
             book.setAuthor(author);
+            author.setNoOfBooks(author.getNoOfBooks()+book.getBooksQuantity());
+            authorRepository.save(author);
+            bookRepository.save(book);
+            return "Book " + book.getTitle() + " has been saved to DB";
+        }
+        return addBookByAuthorName(book,authorName);
+
+    }
+
+    public String addBookByAuthorName(Book book, String authorName)throws Exception{
+        List<Author> allAuthors = authorRepository.findAll();
+        if(allAuthors.isEmpty()){
+            throw new Exception("Author not present");
+        }
+        boolean found = false;
+        for (Author author : allAuthors) {
+            if (author.getAuthorName().equals(authorName)) {
+                book.setAuthor(author);
+                author.setNoOfBooks(author.getNoOfBooks()+ book.getBooksQuantity());
+                authorRepository.save(author);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            book.setAuthor(null);
+            bookRepository.save(book);
+            return "Author "+authorName+" not found And Book " + book.getTitle() + " has been saved to DB";
+        }
+        bookRepository.save(book);
+        return " Book " + book.getTitle() + " has been saved to DB";
+    }
+
+    //add book and also associate book with author
+    public String addBook(Book book, Integer authorId, String authorName)throws Exception {
+        if(book.getBooksQuantity() == null){
+            book.setBooksQuantity(1);
+        }
+        if(updateNoOfBooks(book)){
+            return "Book " + book.getTitle() + " has been saved to DB";
+        }
+        if(book.getNoOfBooksLeft()==0){
+            book.setNoOfBooksLeft(book.getBooksQuantity());
+        }
+
+        if (authorId != null) {
+            return addBookByAuthorID(book,authorId,authorName);
         }
         else if (authorName != null && !authorName.isEmpty()) {
-            List<Author> allAuthors = authorRepository.findAll();
-            boolean found = false;
-            for (Author author : allAuthors) {
-                if (author.getAuthorName().equals(authorName)) {
-                    book.setAuthor(author);
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                book.setAuthor(null);
-            }
+            return addBookByAuthorName(book,authorName);
         }
-        else {
-            book.setAuthor(null);
-        }
+        book.setAuthor(null);
         bookRepository.save(book);
         return "Book " + book.getTitle() + " has been saved to DB";
     }
+
+
 
     //get books by authorId OR authorName
     public List <String> getByAuthorId(Integer authorId,String authorName) throws Exception{
@@ -57,10 +114,9 @@ public class BookService {
             throw new notFoundInDbException("Database is Empty");
         }
         List<String>ans =new ArrayList<>();
-        if(authorId!=null){
             boolean found= false;
             for (Book book:allBooks){
-                if(book.getAuthor().getAuthorId().equals(authorId)){
+                if(book.getAuthor() != null && book.getAuthor().getAuthorId().equals(authorId)){
                     ans.add(book.getTitle());
                     found =true;
                 }
@@ -69,12 +125,11 @@ public class BookService {
                 if(authorName==null || authorName.isEmpty()) {
                     throw new InputValueNotFoundException("Please Provide the applicable authorId");
                 }
-                getByAuthorName(authorId,authorName);
+                return getByAuthorName(authorName);
             }
-        }
         return ans;
     }
-    public List<String> getByAuthorName(Integer authorId, String authorName) throws Exception{
+    public List<String> getByAuthorName(String authorName) throws Exception{
         List<Book>allBooks = bookRepository.findAll();
         if(allBooks.isEmpty()){
             throw new notFoundInDbException("Database is Empty");
@@ -82,13 +137,13 @@ public class BookService {
         List<String>ans =new ArrayList<>();
         boolean found= false;
         for (Book book:allBooks){
-            if(book.getAuthor().getAuthorName().equals(authorName)){
+            if(book.getAuthor() != null && book.getAuthor().getAuthorName().equals(authorName)){
                 ans.add(book.getTitle());
                 found=true;
             }
         }
         if(!found){
-            throw new InputValueNotFoundException("Please Provide the applicable authorName");
+            throw new InputValueNotFoundException("No book present in authorName OR Please Provide the applicable authorName");
         }
         return ans;
     }
@@ -98,7 +153,7 @@ public class BookService {
             return getByAuthorId(authorId,authorName);
         }
         else if (authorName!=null&&!authorName.isEmpty()) {
-           return getByAuthorName(null ,authorName);
+           return getByAuthorName(authorName);
         }
         else {
             throw new InsufficientInputException("You should give either AuthorId Or AuthorName");
@@ -111,8 +166,14 @@ public class BookService {
         Book book= optionalBook.orElseThrow(()->new InputValueNotFoundException("Book not found with Id "+ bookId));
         Optional<Author> optionalAuthor = authorRepository.findById(authorId);
         Author author = optionalAuthor.orElseThrow(() -> new RuntimeException("Author not found"));
+        boolean isNull= false;
+        if(book.getAuthor()==null){
+            isNull=true;
+        }
+        if(isNull){
+            author.setNoOfBooks(author.getNoOfBooks()+book.getBooksQuantity());
+        }
         book.setAuthor(author);
-        author.setNoOfBooks(author.getNoOfBooks()+1);
         bookRepository.save(book);
         authorRepository.save(author);
         return "Book " + book.getTitle()+ " And Author " +author.getAuthorName()+ " associated  Successfully";
