@@ -12,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -28,6 +32,7 @@ public class TransactionService {
 
     private final int MAX_NO_OF_ISSUED_BOOKS=3;
     private final int finePerDay=2;
+    private final int maxDaysBook=7;
 
     public String issueBook(Integer cardId, Integer bookId) throws Exception {
 
@@ -44,11 +49,17 @@ public class TransactionService {
         LocalDate currentDate=LocalDate.now();
         if(currentDate.isAfter(libraryCard.getLastDate())){
             transaction.setTransactionStatus(TransactionStatus.FAILURE);
+            transaction.setRootCauseOrOutput("The Card has been Expired");
+            transaction.setIssuedDate(null);
+            transaction.setFineAmount(null);
             //transaction=transactionRepository.save(transaction);
             return "The Card has been Expired";
         }
         else if(book.getNoOfBooksLeft()==0||libraryCard.getNoOfBooksIssued()>=MAX_NO_OF_ISSUED_BOOKS){
             transaction.setTransactionStatus(TransactionStatus.FAILURE);
+            transaction.setRootCauseOrOutput("Book is currently not present OR Books Limit Exceeded");
+            transaction.setIssuedDate(null);
+            transaction.setFineAmount(null);
             //transaction=transactionRepository.save(transaction);
             return "Book is currently not present OR Books Limit Exceeded";
         }
@@ -56,39 +67,84 @@ public class TransactionService {
                 libraryCard.getCardStatus()==CardStatus.LOST ||
                 libraryCard.getCardStatus()==CardStatus.NEW){
             transaction.setTransactionStatus(TransactionStatus.FAILURE);
-            //transaction=transactionRepository.save(transaction);
+            transaction.setRootCauseOrOutput("Card need to verify because "+libraryCard.getCardStatus());
+            transaction.setIssuedDate(null);
+            transaction.setFineAmount(null);
+           // transaction=transactionRepository.save(transaction);
             return "Card need to verify";
         }
 
         if (transaction.getTransactionStatus()==TransactionStatus.FAILURE ){
-            //transaction=transactionRepository.save(transaction);
+            transaction.setRootCauseOrOutput("Transaction failure");
+            transaction.setIssuedDate(null);
+            transaction.setFineAmount(0);
+            transaction=transactionRepository.save(transaction);
             return "The transaction is FAILURE  with TransactionId  "+ transaction.getTransactionId();
         }
         libraryCard.setNoOfBooksIssued(libraryCard.getNoOfBooksIssued()+1);
         book.setNoOfBooksLeft(book.getNoOfBooksLeft()-1);
-        transaction.setTransactionStatus(TransactionStatus.SUCCESS);
+        transaction.setTransactionStatus(TransactionStatus.ISSUED);
 
         bookRepository.save(book);
         libraryCardRepository.save(libraryCard);
+        transaction.setRootCauseOrOutput("Book issued And need to collect back");
         transaction=transactionRepository.save(transaction);
-        return "The transaction has been completed with TransactionId  "+ transaction.getTransactionId();
+        return "Book has been Issued And with transactionId "+ transaction.getTransactionId();
     }
 
     public String returnBook(Integer cardId,Integer bookId) throws Exception{
-        Optional<LibraryCard>optionalLibraryCard= libraryCardRepository.findById(cardId);
-        LibraryCard libraryCard= optionalLibraryCard.orElseThrow(()->new Exception("CardId is Invalid"));
+        //By cardId bookId and status
+        // mey chance get error for not correct cardId
+        Optional<Transaction> transaction2= transactionRepository.findTransactionByLibraryCard_CardNoAndBook_BookIdAndTransactionStatus(cardId,
+                bookId,
+                TransactionStatus.ISSUED);
 
+
+
+
+        Optional<LibraryCard> optionalLibraryCard = libraryCardRepository.findById(cardId);
+        LibraryCard libraryCard3= optionalLibraryCard.orElseThrow(()-> new Exception("Card Id is Invalid"));
         Optional<Book>optionalBook = bookRepository.findById(bookId);
-        Book book=optionalBook.orElseThrow(()->new Exception("BookId is Invalid"));
+        Book book3= optionalBook.orElseThrow(()-> new Exception("Book Id is Incorrect"));
 
-        Optional<Transaction>optionalTransaction=transactionRepository.;
+        List<Transaction> transactionList= transactionRepository.findTransactionByLibraryCardAndBookAndReturnDateIsNull(
+                libraryCard3,
+                book3);
 
-        book.setNoOfBooksLeft(book.getNoOfBooksLeft()+1);
-        libraryCard.setNoOfBooksIssued(libraryCard.getNoOfBooksIssued()-1);
+        List<Transaction> successTransactionList=new ArrayList<>();
+         for (Transaction transaction: transactionList){
+             if(transaction.getTransactionStatus()==TransactionStatus.ISSUED){
+                 successTransactionList.add(transaction);
+             }
+         }
+         if(successTransactionList.isEmpty()){
+             throw  new Exception("No return Books in this cardId");
+         }
 
-        LocalDate returnDate= LocalDate.now();
+         for (Transaction transaction:successTransactionList){
+             if(Objects.equals(transaction.getBook().getBookId(), bookId)){
+                 LocalDate returnDate= LocalDate.now();
+                 long totalDays = ChronoUnit.DAYS.between(transaction.getIssuedDate(),returnDate);
+                 int fine =0;
+                 if(totalDays>maxDaysBook){
+                     totalDays-=maxDaysBook;
+                     fine = Math.toIntExact(totalDays*finePerDay);//safe convert into int
+                 }
+                 Optional<Book> book1= bookRepository.findById(bookId);
+                 Book book= book1.orElseThrow(()-> new Exception("Book not found"));
+                 Optional<LibraryCard> libraryCard1= libraryCardRepository.findById(cardId);
+                 LibraryCard libraryCard= libraryCard1.orElseThrow(()-> new Exception("card not found"));
+                 book.setNoOfBooksLeft(book.getNoOfBooksLeft()+1);
+                 libraryCard.setNoOfBooksIssued(libraryCard.getNoOfBooksIssued()-1);
 
-
+                 transaction.setReturnDate(returnDate);
+                 transaction.setFineAmount(fine);
+                 transaction.setRootCauseOrOutput("Book returned");
+                 transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+                 transactionRepository.save(transaction);
+                 return "Book taken successfully And fine is "+ transaction.getFineAmount();
+             }
+         }
+         return "this one is not borrowed book";
     }
-
 }

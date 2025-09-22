@@ -37,7 +37,7 @@ public class LibraryCardService {
     public String associateStudentAndCArd(Integer rollNo,Integer cardNo) throws Exception{
         Optional<LibraryCard>optionalLibraryCard=libraryCardRepository.findById(cardNo);
         LibraryCard card = optionalLibraryCard.orElseThrow(()->new Exception ("Card Id Not present"));
-        Optional<Student>optionalStudent=studentRepository.findById(cardNo);
+        Optional<Student>optionalStudent=studentRepository.findById(rollNo);
         Student student = optionalStudent.orElseThrow(()->new Exception ("Student Id Not present"));
         if(card.getCardStatus()!=null&&card.getCardStatus().equals(CardStatus.ISSUED)){
             throw new Exception("Card Already Used");
@@ -46,6 +46,14 @@ public class LibraryCardService {
         card.setStudent(student);
         libraryCardRepository.save(card);
         return  "Student "+ card.getStudent().getName() + "And Card "+card.getCardNo()+" Associated ";
+    }
+
+    public int noOfBooksTaken( Integer studentId) throws Exception {
+
+        Optional<LibraryCard>libraryCard1= libraryCardRepository.findLibraryCardByStudent_RollNo(studentId);
+        LibraryCard libraryCard= libraryCard1.orElseThrow(()->new Exception("Wrong cardId"));
+
+        return libraryCard.getNoOfBooksIssued();
     }
 
 }

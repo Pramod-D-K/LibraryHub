@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
@@ -17,8 +18,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {
+
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "fineGen")
+//    @SequenceGenerator(name = "fineGen",sequenceName = "fineGenerator",allocationSize = 1)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
     private String transactionId;
 
     @Enumerated(value = EnumType.STRING)
@@ -31,6 +36,8 @@ public class Transaction {
     private LocalDate returnDate;
 
     private Integer fineAmount;
+
+    private  String rootCauseOrOutput;
 
     @JoinColumn
     @ManyToOne
