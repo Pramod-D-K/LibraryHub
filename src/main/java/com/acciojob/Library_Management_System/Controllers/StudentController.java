@@ -3,12 +3,14 @@ package com.acciojob.Library_Management_System.Controllers;
 import com.acciojob.Library_Management_System.Entities.Student;
 import com.acciojob.Library_Management_System.Services.LibraryCardService;
 import com.acciojob.Library_Management_System.Services.StudentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/student")
 public class StudentController {
@@ -39,6 +41,16 @@ public class StudentController {
         } catch (Exception e) {
             return e.getMessage();
         }
-
     }
+
+    @GetMapping("/printLogs")
+    public void printLogs(){
+
+        log.trace("Hi, this is trace trace");
+        log.debug("Hi, this is trace debug");
+        log.info("Hi, this is trace info");
+        log.warn("Hi, this is trace warn");
+        log.error("Hi, this is trace error");
+    }
+
 }

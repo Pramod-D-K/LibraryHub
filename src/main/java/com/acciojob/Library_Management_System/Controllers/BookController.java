@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,6 +47,15 @@ public class BookController {
             return new ResponseEntity(result,HttpStatus.OK);
         } catch (Exception e) {
             return  new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/getAllBooks")
+    public List<Book> getAllBooks(){
+        try{
+            return bookService.bookList();
+        } catch (Exception e) {
+            return  new ArrayList<>();
         }
     }
 

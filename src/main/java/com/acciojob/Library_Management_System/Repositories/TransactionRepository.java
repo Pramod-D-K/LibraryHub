@@ -17,7 +17,7 @@ public interface TransactionRepository extends JpaRepository <Transaction,String
     List<Transaction> findTransactionByLibraryCardAndBookAndReturnDateIsNull(
             LibraryCard card, Book book);
 
-    Optional<Transaction> findTransactionByLibraryCard_CardNoAndBook_BookIdAndTransactionStatus(Integer cardId,
+    List<Transaction> findTransactionByLibraryCard_CardNoAndBook_BookIdAndTransactionStatusAndReturnDateIsNull(Integer cardId,
                                                                                                 Integer bookId,
                                                                                                 TransactionStatus transactionStatus);
 

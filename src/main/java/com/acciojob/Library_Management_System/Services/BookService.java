@@ -179,6 +179,11 @@ public class BookService {
         return "Book " + book.getTitle()+ " And Author " +author.getAuthorName()+ " associated  Successfully";
     }
 
+    public List<Book> bookList() throws Exception{
+        List<Book> bookList=bookRepository.findAll();
+        return bookList;
+    }
+
     //delete by bookId
     public String deleteBookById(Integer bookId) throws Exception {
         Book book =bookRepository.findById(bookId).orElseThrow(()-> new InputValueNotFoundException("Book with Id "+bookId+" not found"));
