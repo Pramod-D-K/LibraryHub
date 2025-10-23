@@ -10,5 +10,4 @@ public enum Genre {
     COMIC,
     SPIRITUAL,
     THRILLER
-
 }
